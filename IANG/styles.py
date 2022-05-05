@@ -1,7 +1,6 @@
-# colors = ['#00ff00', '#00ffff', '#ff0000', '#ffff00', '#ffffff', '#ff8000',
-#           '#ffff80', '#ff80ff', '#80ff00', '#80ffff', '#00ff80', '#8000ff',
-#           '#ff0080']
-
+"""
+    Dictionary of styles for differnt elements.
+"""
 styles = {
     'pre': {
         'border': 'thin lightgrey solid',
@@ -9,9 +8,53 @@ styles = {
         'width': '19%',
         'float': 'right',
     },
+    'txt': {
+        'border': 'thin lightgrey solid',
+        'overflowX': 'scroll',
+        'wrap': 'off',
+        'width': '49%',
+        'height': '90vh',
+        'float': 'right',
+    },
+    'IMP': {
+        'border': 'thin lightgrey solid',
+        'wrap': 'off',
+        'width': '100%',
+        'resize': 'none',
+        'color': 'blue',
+    },
+    'KWX': {
+        'border': 'thin lightgrey solid',
+        'wrap': 'off',
+        'width': '100%',
+        'resize': 'none',
+        'color': 'green',
+    },
+    'OTH': {
+        'border': 'thin lightgrey solid',
+        'wrap': 'off',
+        'width': '100%',
+        'resize': 'none',
+    },
+    'CMT': {
+        'border': 'thin lightgrey solid',
+        'wrap': 'off',
+        'width': '100%',
+        'color': 'grey',
+        'resize': 'none',
+    },
+    'upload': {
+        'width': '20%',
+        'height': '30px',
+        'lineHeight': '30px',
+        'borderWidth': '2px',
+        'borderStyle': 'dashed',
+        'borderRadius': '8px',
+        'textAlign': 'center',
+    },
     'cyto': {
-        'width': '80%',
-        'height': '1200px',
+        'width': '50%',
+        'height': '90vh',
         'float':'left',
         'nodeOverlap':8,
         'gravity': .2,

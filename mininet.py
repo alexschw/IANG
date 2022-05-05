@@ -1,10 +1,7 @@
-
-from ANNarchy import Neuron, Synapse, Population, Projection, Uniform, Oja, compile
-#   Bar Learning example
-#
-#   authors: Julien Vitay, Helge Uelo Dinkelbach
-
-# Input neuron: r is set externally
+"""
+    Miniature Network for testing.
+"""
+from ANNarchy import Neuron, Population, Projection, Uniform, Oja, compile
 InputNeuron = Neuron(parameters="r = 0.0")
 
 # Leaky neuron

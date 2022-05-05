@@ -1,18 +1,82 @@
-import ANNarchy as ann
-from dash.dependencies import Input, Output
+"""
+    Defines the callbacks for the dash APP.
+"""
+import base64
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
+from dash.dcc import Textarea
+from dash import callback_context
+from ann_parser import file_parser, string_parser
+from styles import styles
 
 def callbacks(APP):
-    @APP.callback(Output('nodeInfo', 'children'), Input('ann-net', 'tapNodeData'))
-    def displayTapNodeData(data):
-        if not data:
-            return ""
-        pop = ann.get_population(data['id'])
-        neur = pop.neuron_type
-        return f"{data['id']} Shape: {pop.geometry} \n{repr(neur)}"
+    """
+    Define callback functions for the nodes and edges.
+    """
+    @APP.callback(Output('network_data', 'data'),
+                  Input('upload_btn', 'contents'))
+    def loadNetworkData(contents):
+        if contents is None:
+            with open('../mininet.py', 'r') as f:
+                contents = f.read()
+            data, graph = file_parser('../mininet.py')
+            return {'content': contents, 'data': data, 'graph': graph}
+        _, contentstr = contents.split(',')
+        c = base64.b64decode(contentstr).decode('utf-8')
+        data, graph = string_parser(c)
+        return {'content': c, 'data': data, 'graph': graph}
 
-    @APP.callback(Output('edgeInfo', 'children'), Input('ann-net', 'tapEdgeData'))
-    def displayTapNodeData(data):
-        if not data:
-            return ""
-        syn = ann.get_projection(data['label']).synapse_type
-        return repr(syn)
+    def on_click_highlight(tap, divs):
+        for tx in divs:
+            if tx['props'].get('name'):
+                if tap['name'] in tx['props'].get('name').split(','):
+                    tx['props']['style']['background-color'] = '#ffb224'
+                else:
+                    tx['props']['style']['background-color'] = 'white'
+
+    def generate_textareas(data):
+        divs = []
+        for val in data['data']:
+            ta = Textarea()
+            subtxt = data['content'][val[0]:val[1]]
+            ta.value = subtxt
+            ta.style = styles[val[2]]
+            if val[3][0]:
+                ta.name = ",".join(val[3])
+            ta.rows = (subtxt.count('\n') + 1)
+            divs.append(ta)
+        return divs
+
+
+    @APP.callback(Output('text', 'children'),
+                  Input('network_data', 'data'),
+                  Input('ann-net', 'tapNodeData'),
+                  Input('ann-net', 'tapEdgeData'),
+                  State('text', 'children'))
+    def show_elements(data, tND, tED, divs):
+        ctx = callback_context.triggered[0]
+        if not ctx:
+            raise PreventUpdate
+        if ctx["prop_id"].split(".")[0] == 'ann-net':
+            if ctx["prop_id"] == 'ann-net.tapNodeData':
+                tap = tND
+            else:
+                tap = tED
+            on_click_highlight(tap, divs)
+        else:
+            divs = generate_textareas(data)
+        return divs
+
+    @APP.callback(Output('ann-net', 'elements'),
+                  Input('network_data', 'data'))
+    def show_graph(data):
+        return data['graph']
+
+    @APP.callback(Output('ann-net', 'layout'),
+                  Input('layout_btn', 'n_clicks'),
+                  State('ann-net', 'selectedNodeData'))
+    def swap_layout(n_clicks, elem):
+        if not n_clicks or not elem:
+            raise PreventUpdate
+        k = ", ".join("#"+node['id'] for node in elem)
+        return {'name':'breadthfirst', 'animate':True, 'roots':k}
