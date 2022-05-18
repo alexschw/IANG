@@ -14,19 +14,28 @@ def callbacks(APP):
     Define callback functions for the nodes and edges.
     """
     @APP.callback(Output('network_data', 'data'),
-                  Input('upload_btn', 'contents'))
-    def loadNetworkData(contents):
+                  Input('upload_btn', 'contents'),
+                  Input('ta', 'n_blur'),
+                  State('text', 'children'))
+    def loadNetworkData(contents, ta, children):
+        ctx = callback_context.triggered[0]
+        if not ctx:
+            return {'content': '', 'data': '', 'graph': ''}
         if contents is None:
             with open('../mininet.py', 'r') as f:
-                contents = f.read()
-            data, graph = file_parser('../mininet.py')
-            return {'content': contents, 'data': data, 'graph': graph}
-        _, contentstr = contents.split(',')
-        c = base64.b64decode(contentstr).decode('utf-8')
+                c = f.read()
+        elif ctx["prop_id"] == 'ta.n_blur':
+            c = "\n".join([ch['props']['value'] for ch in children])
+        else:
+            _, contentstr = contents.split(',')
+            c = base64.b64decode(contentstr).decode('utf-8')
         data, graph = string_parser(c)
         return {'content': c, 'data': data, 'graph': graph}
 
     def on_click_highlight(tap, divs):
+        """
+        Highlight the background textarea of the tapped edge or node.
+        """
         for tx in divs:
             if tx['props'].get('name'):
                 if tap['name'] in tx['props'].get('name').split(','):
@@ -36,15 +45,16 @@ def callbacks(APP):
 
     def generate_textareas(data):
         divs = []
-        for val in data['data']:
-            ta = Textarea()
-            subtxt = data['content'][val[0]:val[1]]
-            ta.value = subtxt
-            ta.style = styles[val[2]]
-            if val[3][0]:
-                ta.name = ",".join(val[3])
-            ta.rows = (subtxt.count('\n') + 1)
-            divs.append(ta)
+        if "data" in data:
+            for val in data['data']:
+                ta = Textarea(id="ta")
+                subtxt = data['content'][val[0]:val[1]]
+                ta.value = subtxt
+                ta.style = styles[val[2]]
+                if val[3][0]:
+                    ta.name = ",".join(val[3][0])
+                ta.rows = (subtxt.count('\n') + 1)
+                divs.append(ta)
         return divs
 
 
